@@ -1,0 +1,13 @@
+gdown
+matplotlib
+torch
+pandas
+scikit-learn
+transformers
+wayback
+yfinance
+keras
+# tensorflow
+setuptools==57.5.0
+pygooglenews
+yfinance
