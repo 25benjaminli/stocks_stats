@@ -5,7 +5,7 @@ import random
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 from urllib.request import Request
-from datetime import date
+from datetime import date, datetime
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 vader = SentimentIntensityAnalyzer()
@@ -94,14 +94,18 @@ tickers = ["MSFT"]
 
 print("urls selected", urls_select)
 
+sentiments = {}
 for url in urls_select:
     # save url to access metadata
     # beatiful soup to extract the text
     url = url.strip()
     for ticker in tickers:
-        headline, sentiment = HistoricalSentiment(ticker).calculate_sentiment()
-        print("headline", headline)
-        print("sentiment", sentiment)
+        obj_vader = HistoricalSentiment(ticker, vader.polarity_scores)
+        headline, sentiment_vader = obj_vader.calculate_sentiment()
+        # print("headlines:")
+        # print(headline.head())
+        print("aggregated sentiment:", sentiment_vader)
+        sentiments[ticker] = sentiment_vader
         break
 
 
@@ -123,3 +127,11 @@ for url in urls_select:
 #     return final_sentiment
 
 # # print("vader", get_scores(news_df))
+
+
+print("sentiments", sentiments)
+
+
+# we "buy" the top 5 stocks with the highest sentiment and sell it at the end of the day
+
+# TODO: investigate after hours stock moving - how do we deal with this?
