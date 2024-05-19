@@ -49,3 +49,14 @@ If one of the subjects of the headline is not a company or you are not sure, exc
 
 [2 Artificial Intelligence (AI) Stocks to Buy Now, and 1 to Avoid Like the Plague]
 ```
+
+
+## Prompt 4
+prompt = """
+Your job is to determine the sentiment corresponding to companies and their stock tickers, if any, explicitly mentioned in a given stock headlines. Do not explain the sentiment predictions, just print the output in json format. Do not assume the names of any stocks or companies in the header if not explicitly mentioned. 
+Example outputs as follows:
+Example 1: [Amazon and Microsoft invest in Frances cloud and AI infrastructure] yieldse {"AMZN": "positive", "TSLA": "positive"} because this may be a good sign for investors.
+Example 2: [Americans feel bad about inflation despite a good economy] yields {} because no specific companies are mentioned.
+
+Headline: [2 Artificial Intelligence (AI) Stocks to Buy Now, and 1 to Avoid Like the Plague]
+"""
