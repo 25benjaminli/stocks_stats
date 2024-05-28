@@ -1,0 +1,78 @@
+import pandas as pd
+import re
+
+# TODO: test this out
+def analyze_sentiment(aggregated_data, llm, threshold=10):
+    master_sentiment = {}
+    failed = {}
+    misaligned = {}
+
+    for company, headlines in aggregated_data.items():
+        print("PARSING COMPANY", company)
+
+        # Process headlines in chunks
+        for i in range(0, len(headlines), threshold):
+            chunk = headlines[i:i + threshold]
+            dates, chunk_headlines = zip(*chunk)
+
+            prompt = f"""
+            You will be given a set of news headlines about a certain stock separated by bars and required to determine the sentiment in relation to that stock. 
+            For example, the format will be headline one | headline two | headline three... 
+            Determine the sentiment of each headline ("POSITIVE", "NEUTRAL", or "NEGATIVE") in relation to the provided stock ticker, 
+            where "NEUTRAL" should be used for ambiguous headlines which do not explicitly mention sentiment of the company of interest. 
+            You are forbidden from outputting explanations. 
+            Only use headlines to determine sentiment and do not assume the content of the article.
+            Output should be formatted like a dictionary, where the key is the headline number and the value is the sentiment.
+            Verify that the output length is the same as number of headlines you received.
+            
+            Example output: [1: "POSITIVE", 2: "NEGATIVE", 3: "NEUTRAL"]. 
+            
+            Ticker: {company}
+            Headlines: {"| ".join(chunk_headlines)}
+            """
+            # Invoke the language model with the generated prompt
+            val = llm.invoke(prompt)
+
+            print(len(chunk_headlines))
+            print("**RESPONSE**")
+            print(val)
+
+            try:
+                li = eval(val)
+            except:
+                if company not in failed:
+                    failed[company] = []
+                failed[company].append({"llm output": val, "headlines": chunk_headlines})
+                continue
+
+            print("length of response", len(li), "length of headlines", len(chunk_headlines))
+            if len(li) != len(chunk_headlines):
+                if company not in misaligned:
+                    misaligned[company] = []
+                misaligned[company].append(f"response {len(li)} headlines {len(chunk_headlines)}")
+                continue
+
+            # Store the sentiment scores by date
+            for date, sentiment in zip(dates, li):
+                if date not in master_sentiment:
+                    master_sentiment[date] = {}
+                if company not in master_sentiment[date]:
+                    master_sentiment[date][company] = {'positive': 0, 'negative': 0, 'neutral': 0}
+
+                sentiment = sentiment.upper()
+                if sentiment == "POSITIVE":
+                    master_sentiment[date][company]['positive'] += 1
+                elif sentiment == "NEGATIVE":
+                    master_sentiment[date][company]['negative'] += 1
+                elif sentiment == "NEUTRAL":
+                    master_sentiment[date][company]['neutral'] += 1
+
+    # Calculate aggregated sentiment score for each date and company
+    for date, companies in master_sentiment.items():
+        for company, sentiments in companies.items():
+            total = sentiments['positive'] + sentiments['negative'] + sentiments['neutral']
+            sentiments['aggregated'] = (sentiments['positive'] - sentiments['negative']) / total if total > 0 else 0
+
+    return master_sentiment, failed, misaligned
+
+master_sentiment, failed, misaligned = analyze_sentiment(di_by_symbol, llm, threshold=10)
