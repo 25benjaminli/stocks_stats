@@ -5,7 +5,7 @@ import pandas as pd
 
 
 end_date = datetime.datetime.strftime(datetime.datetime.now(), "%Y-%m-%d")
-start_date = "2017-01-01"
+start_date = "2015-01-01"
 
 yf.pdr_override() # <== that's all it takes :-)
 
@@ -24,8 +24,9 @@ import random
 import numpy as np
 
 random.seed(42)
-random_dates = random.sample(sorted(days), 30)
+num_days = 150
+
+random_dates = random.sample(sorted(days), num_days)
 random_dates = np.sort(random_dates)
 random_df = pd.DataFrame(random_dates)
 random_df.to_csv("random_days.csv", mode = 'w', index=False, header=False)
-
